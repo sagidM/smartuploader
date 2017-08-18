@@ -222,7 +222,6 @@
           if (multiUploading) {
             formDataResult = options.formData.call(fileInput, fileIndex, blob, filenames[fileIndex]);
             return uploadQuery(options, formDataResult, filenames[fileIndex], fileInput, fileIndex, blob, process).done(function() {
-              console.log("11", progressBar);
               wrapper.classList.remove("uploading");
               options.uploadEnd.call(fileInput, filenames[fileIndex], fileIndex, blob);
               if (++uploadedFilesCount === files.length) {
@@ -233,8 +232,7 @@
             blobs.push(blob);
             if (++uploadedFilesCount === files.length) {
               formDataResult = options.formData.call(fileInput, blobs, filenames);
-              return uploadQuery(options, formDataResult, filenames, fileInput, fileIndex, blob, process).done(function() {
-                console.log("22", progressBar);
+              return uploadQuery(options, formDataResult, filenames, fileInput, "(multiUploading must be true)", blobs, process).done(function() {
                 options.uploadEnd.call(fileInput, filenames, fileIndex, blob);
                 return options.done.call(fileInput, filenames);
               });
@@ -290,7 +288,7 @@
         return xhr;
       }
     };
-    options.ajaxSettings(settings, fileIndex, blob);
+    options.ajaxSettings.call(fileInput, settings, fileIndex, filename, blob);
     if (!settings.url) {
       settings.url = options.url;
     }
@@ -332,9 +330,15 @@
         blobCallback(file);
         return;
       }
-      if ((convertTo.maxWidth != null) || (convertTo.maxHeight != null)) {
+      if (convertTo.maxWidth || convertTo.maxHeight) {
         maxWidth = convertTo.maxWidth || this.width;
         maxHeight = convertTo.maxHeight || this.height;
+        if (typeof maxWidth === "string") {
+          maxWidth = Number(maxWidth);
+        }
+        if (typeof maxHeight === "string") {
+          maxHeight = Number(maxHeight);
+        }
         if (w > maxWidth) {
           w = maxWidth;
           h *= w / this.width;
@@ -350,17 +354,19 @@
             h = this.height * w / this.width;
           }
         }
-        if ((convertTo.width != null) && convertTo.width < maxWidth) {
+        if (convertTo.width && convertTo.width < maxWidth) {
           w = convertTo.width;
         }
-        if ((convertTo.height != null) && convertTo.height < maxHeight) {
+        if (convertTo.height && convertTo.height < maxHeight) {
           h = convertTo.height;
         }
-      } else if ((convertTo.width != null) && convertTo.height) {
-        w = convertTo.width;
-        h = convertTo.height;
       } else {
-        throw new DropZoneError("Not enough information about sizes");
+        if (convertTo.width) {
+          w = convertTo.width;
+        }
+        if (convertTo.height) {
+          h = convertTo.height;
+        }
       }
       canvas.width = w;
       canvas.height = h;
@@ -370,9 +376,7 @@
         blobCallback(file);
         return;
       }
-      if (quality == 1) {
-        quality = 1.1;
-      }
+      quality = quality === 1 ? 1.1 : Number(quality);
       return canvas.toBlob(blobCallback, convertTo.mimeType || file.type, quality);
     };
     reader = new FileReader;

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Full Upload</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="../jquery.smartuploader.js"></script>
+  <link rel="stylesheet" type="text/css" href="common.css">
+</head>
+<body>
+  <h2>Amazon S3 uploading</h2>
+  <div id="drop_zone" class="drop-zone">
+    <p class="title">Drop file here</p>
+    <div class="preview-container"></div>
+  </div>
+  <div class="converting">
+    <div class="max">
+      <div><b>Max</b> width and height</div>
+      <input id="max_width_convert" placeholder="infinity" type="number" value="320">
+      <input id="max_height_convert" placeholder="infinity" type="number" value="320">
+    </div>
+    <div class="fixed">
+      <div><b>Fixed</b> width and height</div>
+      <input id="fixed_width_convert" placeholder="default" type="number">
+      <input id="fixed_height_convert" placeholder="default" type="number">
+    </div>
+    <div>
+      <div style="display: inline-block;">
+        Quality <br>
+        <input type="range" id="quality" step="0.01" max="1">
+      </div>
+      <select id="image_mime_type">
+        <option value="image/jpeg">jpeg</option>
+        <option value="image/png">png</option>
+        <option value="image/webp">webp</option>
+      </select>
+    </div>
+  </div>
+  <input id="file_input" accept="image/*" type="file" multiple="" name="file">
+  <button id="upload_images">Auto Upload On</button>
+  <div id="result_images" class="result-images"></div>
+
+<script>
+
+var url = "https://smartuploader.s3.amazonaws.com/";
+var fileNamePrefix = "uploads/" + Date.now() + "_";
+var maxWidth = $("#max_width_convert");
+var maxHeight = $("#max_height_convert");
+var fixedWidth = $("#fixed_width_convert");
+var fixedHeight = $("#fixed_height_convert");
+var quality = $("#quality");
+var resultContainer = $("#result_images");
+
+
+var result = $("#file_input").withDropZone("#drop_zone", {
+  url: url,   // common page for every 
+  uploadBegin: function(filename, fileIndex, blob) {
+    console.log("begin: " + filename)
+  },
+  uploadEnd: function(filename, fileIndex, blob) {
+    console.log("end: " + filename)
+  },
+  validateAll: function(files) {
+    resultContainer.html("")
+    return files   // here you can remove wrong files from array "files"
+  },
+  done: function(filenames){
+    // show result
+    var html = [`<b>Your image${filenames.length === 1 ? '' : 's:'}</b>`];
+    for (var i = 0; i < filenames.length; i++) {
+      var href = url + fileNamePrefix + filenames[i];
+      html.push(`<a href="${href}">${url + fileNamePrefix}<b>${filenames[i]}</b></a>`)
+    }
+    resultContainer.html(html.join("<br/>"));
+  },
+  action: function(fileIndex){
+    // you can change your file
+    // for example:
+    var type = $("#image_mime_type").val();
+    console.log(quality.val())
+    var convertTo = {
+      mimeType:   type,
+      maxWidth:   maxWidth.val(),
+      maxHeight:  maxHeight.val(),
+      width:      fixedWidth.val(),
+      height:     fixedHeight.val(),
+      qualityArgument: quality.val()
+    };
+    var extension = "." + type.substr(type.indexOf("/")+1);
+
+    return {
+      name: "image",   // with "image" is supposed to be more actions
+      rename: function(filenameWithoutExt, ext, fileIndex) {
+        return filenameWithoutExt + extension
+      },
+      params: {
+        preview: true,
+        convertTo: convertTo,
+      }
+    }
+  },
+  ifWrongFile: "show",  // show (show all file),
+                        // nothing (do nothing),
+                        // ignore (ignore wrong files)
+                        // error (do nothing and add class "error" on drop zone)
+
+  wrapperForInvalidFile: function(fileIndex) {
+    return `<div style="margin: 20px 0; color: red;">File: "${file.name}" doesn't support</div>`
+  },
+
+  // all queries will be executed in one query if this option is false
+  multiUploading: true,
+  formData: function(fileIndex, blob, filename) {
+    var formData = new FormData;
+    formData.set("key", fileNamePrefix + filename);  // key will be file name in S3
+    formData.set("file", blob, filename);
+    return formData
+  },
+  // for single upload
+  // multiUploading: false,
+  // ***form data receives arrays instead of one file iterable***
+  // formData: function(blobs, filenames) {
+  //   var formData = new FormData;
+  //   formData.set("key", fileNamePrefix + filename);
+  //   for (var i = 0; i < blobs.length; i++) {
+  //     formData.attach("file", blobs[i], filenames[i]);
+  //   }
+  //   return formData
+  // },
+  // but Amazon S3 doesn't allow it
+
+  // you're able to change ajax settings file, it's parameter for $.ajax method
+  // https://api.jquery.com/jquery.ajax/
+  // Note: it's also called multiple times (for each file),
+  //       in case "multiUploading" is true
+  ajaxSettings: function(settings, fileIndex, filename, blob){
+    // settings.url = "/some_specific_page"
+    // settings.data.set("key", "AKIAJ26HYP7ZBX3UNBLA")  // extra parameters
+    settings.error = function(e) {
+      return alert(`${e.status}: ${e.statusText}`);
+    }
+  }
+  // otherwise the signature is (settings, fileIndex, filenames, blobs)
+  // where "fileIndex" has no value
+  // --------------------------
+  // methods: uploadBegin and uploadEnd also have similar signature
+});
+
+$("#upload_images").click(result.load);
+
+</script>
+
+</body>
+</html>

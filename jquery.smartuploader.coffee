@@ -219,7 +219,6 @@ uploadImageFile = (dropZone, fileInput, promiseResult, files, options) ->
         if multiUploading
           formDataResult = options.formData.call(fileInput, fileIndex, blob, filenames[fileIndex])
           uploadQuery(options, formDataResult, filenames[fileIndex], fileInput, fileIndex, blob, process).done ->
-            console.log "11", progressBar
             wrapper.classList.remove "uploading"
             options.uploadEnd.call(fileInput, filenames[fileIndex], fileIndex, blob)
             if ++uploadedFilesCount is files.length
@@ -228,8 +227,7 @@ uploadImageFile = (dropZone, fileInput, promiseResult, files, options) ->
           blobs.push(blob)
           if ++uploadedFilesCount is files.length
             formDataResult = options.formData.call(fileInput, blobs, filenames)
-            uploadQuery(options, formDataResult, filenames, fileInput, fileIndex, blob, process).done ->
-              console.log "22", progressBar
+            uploadQuery(options, formDataResult, filenames, fileInput, "(multiUploading must be true)", blobs, process).done ->
               options.uploadEnd.call(fileInput, filenames, fileIndex, blob)
               options.done.call(fileInput, filenames)
 
@@ -275,7 +273,7 @@ uploadQuery = (options, formDataResult, filename, fileInput, fileIndex, blob, lo
       xhr.upload.onprogress = loadingProgressCallback
       xhr
   }
-  options.ajaxSettings(settings, fileIndex, blob)
+  options.ajaxSettings.call(fileInput, settings, fileIndex, filename, blob)
   settings.url = options.url unless settings.url
   $.ajax(settings)
 
@@ -314,9 +312,13 @@ imageAction = (options, params, preview, file, blobCallback) ->
       blobCallback(file)
       return
 
-    if convertTo.maxWidth? or convertTo.maxHeight?
+    if convertTo.maxWidth or convertTo.maxHeight
       maxWidth = convertTo.maxWidth || this.width
       maxHeight = convertTo.maxHeight || this.height
+      if typeof maxWidth is "string"
+        maxWidth = Number(maxWidth)
+      if typeof maxHeight is "string"
+        maxHeight = Number(maxHeight)
 
       if w > maxWidth
         w = maxWidth
@@ -330,15 +332,15 @@ imageAction = (options, params, preview, file, blobCallback) ->
         if w > maxWidth
           w = maxWidth
           h = this.height * w / this.width
-      if convertTo.width? and convertTo.width < maxWidth
+      if convertTo.width and convertTo.width < maxWidth
         w = convertTo.width
-      if convertTo.height? and convertTo.height < maxHeight
+      if convertTo.height and convertTo.height < maxHeight
         h = convertTo.height
-    else if convertTo.width? and convertTo.height
-      w = convertTo.width
-      h = convertTo.height
     else
-      throw new DropZoneError("Not enough information about sizes")
+      if convertTo.width
+        w = convertTo.width
+      if convertTo.height
+        h = convertTo.height
     canvas.width = w
     canvas.height = h
     canvas.getContext("2d").drawImage(this, 0, 0, w, h)
@@ -350,7 +352,7 @@ imageAction = (options, params, preview, file, blobCallback) ->
        file.type isnt convertTo.mimeType
       blobCallback(file)  # no need to resize or convert
       return
-    quality = 1.1 if `quality == 1`  # bug
+    quality = if quality is 1 then 1.1 else Number(quality)   # 1.1 - bug
     canvas.toBlob(blobCallback, convertTo.mimeType || file.type, quality)
   reader = new FileReader
   reader.onloadend = (e) ->

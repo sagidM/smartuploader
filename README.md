@@ -1,7 +1,20 @@
 smartuploader
 ===============
 
-jQuery plugin for upload files
+## Description
+
+jQuery plugin for upload files.
+Moreover, it also can convert image and resize it on the client side.
+
+
+## Demo
+[https://kofon95.github.io/smartuploader/examples/2.full-upload.html](https://kofon95.github.io/smartuploader/examples/2.full-upload.html)
+
+[https://kofon95.github.io/smartuploader/examples/3.converter.html](https://kofon95.github.io/smartuploader/examples/3.converter.html)
+
+## Examples
+[https://github.io/kofon95/smartuploader/examples](https://github.io/kofon95/smartuploader/examples)
+
 
 
 ## Features
@@ -21,20 +34,18 @@ jQuery plugin for upload files
 
 ## Deployment
 
-### __To compile to js__
+### __To compile to js, you can use npm__
+
 ```
 $ npm install --global coffeescript
 
 $ coffee -wc jquery.smartuploader.coffee # watch and compile
 $ coffee -c jquery.smartuploader.coffee  # just compile
 ```
-_it creates **jquery.smartuploader.js** in the root_
 
-#### More information [https://www.npmjs.com/package/coffee-script](https://www.npmjs.com/package/coffee-script)
+- More information [https://www.npmjs.com/package/coffee-script](https://www.npmjs.com/package/coffee-script)
 
-### __Online service__
-
-Use CoffeeScript official website: [http://coffeescript.org/#try:%23%20Paste%20CoffeeScript%20code%20here](http://coffeescript.org/#try:%23%20Paste%20CoffeeScript%20code%20here)
+### Or go to CoffeeScript official website: [http://coffeescript.org/#try:%23%20Paste%20CoffeeScript%20code%20here](http://coffeescript.org/#try:%23%20Paste%20CoffeeScript%20code%20here)
 
 
 

@@ -33,7 +33,7 @@ var result = $("#file_input").withDropZone("#drop_zone", {
     console.log("done: " + filenames);
     console.log(fileNamePrefix)
     var result = $("#result_images");
-    var html = ["<b>Your images</b>"];
+    var html = [`<b>Your image${filenames.length === 1 ? '' : 's:'}</b>`];
     for (var i = 0; i < filenames.length; i++) {
       var href = url + fileNamePrefix + filenames[i];
       html.push(`<a href="${href}">${url + fileNamePrefix}<b>${filenames[i]}</b></a>`)
@@ -97,7 +97,6 @@ var result = $("#file_input").withDropZone("#drop_zone", {
   ajaxSettings: function(settings, index, filename, blob){
     // settings.url = "/some_specific_page"
     // settings.data.set("key", "AKIAJ26HYP7ZBX3UNBLA")  // extra parameters
-    // TMuJ5xCSAv3R4zmIzuWBsCMWlS0ZS1kJWJ+CL1lU
     settings.error = function(e) {
       return alert(`${e.status}: ${e.statusText}`);
     }
