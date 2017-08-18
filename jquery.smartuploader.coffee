@@ -1,5 +1,5 @@
 ###
- jQuery Smart Uploader Plugin 0.1.0
+ jQuery Smart Uploader Plugin 0.2.0
  https://github.com/kofon95/smartuploader
 
  Licensed under the MIT license:
@@ -17,14 +17,13 @@ DefaultOptions = {
   maxFileSize: Number.POSITIVE_INFINITY
   fileNameMatcher: /.*/      # /^[^\.].*\..*[^\.]$/  # .wrong; also.wrong.; good.txt
   fileMimeTypeMatcher: /.*/
-  wrapperForInvalidFile: (file) ->
-    "<p>File: #{file.name} doesn't support</p>'"
+  wrapperForInvalidFile: (fileIndex) ->
+    "<p>File: \"#{this.files[fileIndex].name}\" doesn't support</p>'"
   validateEach: (fileIndex) -> true            # should return Boolean
   validateAll: (files) -> files                # should return array of valid files
-  # single uploading, it's called once
-  # formData: (fileIndex, blob, filename) ->
-  # formData: (blobs, filenames) ->
-  # ~80 line
+  # formData: (fileIndex, blob, filename) ->   # if single upload, it's called once
+  # formData: (blobs, filenames) ->            # if multi upload, it's called for each file
+  # ~70 line
   uploadBegin: (fileIndex, blob) ->
   process: (progress, fileIndex, blob) ->
   uploadEnd: (fileIndex, blob) ->
@@ -43,6 +42,7 @@ extract = (field, self, args) ->
   else
     field
 
+empty = ->
 
 $.fn.withDropZone = (dropZone, options) ->
   if this.attr("type") isnt "file"
@@ -76,6 +76,9 @@ $.fn.withDropZone = (dropZone, options) ->
     options = {}
 
 
+  uploadResult = {load: null}
+  promiseResult = new Promise((resolve) -> uploadResult.load = resolve)
+
 #####################################
 
   fileInput = this.get(0)
@@ -92,20 +95,20 @@ $.fn.withDropZone = (dropZone, options) ->
     )
     .on("drop", (e) ->
       e.preventDefault()
-      files = e.originalEvent.dataTransfer.files
-      uploadImageFile(this, fileInput, files, options)
+      fileInput.files = e.originalEvent.dataTransfer.files
+      uploadImageFile(this, fileInput, promiseResult, fileInput.files, options)
     )
-    .on("click", ->
-      fileInput.click()
-    )
+    .on("click", -> fileInput.click())
 
   this.on("change", ->
-    uploadImageFile(dropZone[0], this, this.files, options)
+    uploadImageFile(dropZone[0], this, promiseResult, this.files, options)
   )
+
+  return uploadResult
 
 
 # both dropZone and fileInput are instances of HTMLElement
-uploadImageFile = (dropZone, fileInput, files, options) ->
+uploadImageFile = (dropZone, fileInput, promiseResult, files, options) ->
   dropZone.classList.remove 'hover'
   dropZone.classList.remove 'drop'
   dropZone.classList.remove 'error'
@@ -183,19 +186,19 @@ uploadImageFile = (dropZone, fileInput, files, options) ->
     let progressBar
     `
 
-    wrapper.className = "wrapper"
+    wrapper.className = "wrapper uploading"
     previewContainer.append(wrapper)
 
     unless isValidFile[i]
       wrapper.classList.add "invalid"
-      wrapper.innerHTML = options.wrapperForInvalidFile(fileIndex)
+      wrapper.innerHTML = options.wrapperForInvalidFile.call(fileInput, fileIndex)
       continue
 
 
     wrapper.innerHTML = '''
       <div class="preview"></div>
       <div class="file-name"></div>
-      <div class="file-uploader-progress-bar uploading">
+      <div class="file-uploader-progress-bar">
         <div class="progress"></div>
       </div>
     '''
@@ -208,32 +211,32 @@ uploadImageFile = (dropZone, fileInput, files, options) ->
 
     # ajax request
     uploadNext = (blob)->
-      process = (progress) ->
-        progressBar.style.width = 100 * progress.loaded / progress.total + "%"
-        options.process.call(fileInput, progress, fileIndex, blob)
+      promiseResult.then ->
+        process = (progress) ->
+          progressBar.style.width = 100 * progress.loaded / progress.total + "%"
+          options.process.call(fileInput, progress, fileIndex, blob)
 
-      if multiUploading
-        formDataResult = options.formData.call(fileInput, fileIndex, blob, filenames[fileIndex])
-        uploadQuery(options, formDataResult, fileInput, fileIndex, blob, process)
-        .done ->
-          progressBar.parentNode.classList.remove "uploading"
-          options.uploadEnd.call(fileInput, fileIndex, blob)
+        if multiUploading
+          formDataResult = options.formData.call(fileInput, fileIndex, blob, filenames[fileIndex])
+          uploadQuery(options, formDataResult, filenames[fileIndex], fileInput, fileIndex, blob, process).done ->
+            console.log "11", progressBar
+            wrapper.classList.remove "uploading"
+            options.uploadEnd.call(fileInput, filenames[fileIndex], fileIndex, blob)
+            if ++uploadedFilesCount is files.length
+              options.done.call(fileInput, filenames)
+        else
+          blobs.push(blob)
           if ++uploadedFilesCount is files.length
-            options.done.call(fileInput)
-
-      else
-        blobs.push(blob)
-        if ++uploadedFilesCount is files.length
-          formDataResult = options.formData.call(fileInput, blobs, filenames)
-          uploadQuery(options, formDataResult, fileInput, fileIndex, blob, process)
-          .done ->
-            options.uploadEnd.call(fileInput, fileIndex, blob)
-            options.done.call(fileInput)
+            formDataResult = options.formData.call(fileInput, blobs, filenames)
+            uploadQuery(options, formDataResult, filenames, fileInput, fileIndex, blob, process).done ->
+              console.log "22", progressBar
+              options.uploadEnd.call(fileInput, filenames, fileIndex, blob)
+              options.done.call(fileInput, filenames)
 
 
 
     filenames[fileIndex] = file.name
-    actionOption = extract(options.action, fileInput, [file, i])
+    actionOption = extract(options.action, fileInput, [i])
     if actionOption
       action = actions[actionOption.name]
       if typeof action isnt "function"
@@ -255,7 +258,40 @@ uploadImageFile = (dropZone, fileInput, files, options) ->
       action(options, actionOption.params, preview, file, uploadNext)
     else
       uploadNext(file)
+
   null # end function
+
+
+uploadQuery = (options, formDataResult, filename, fileInput, fileIndex, blob, loadingProgressCallback) ->
+  options.uploadBegin.call(fileInput, filename, fileIndex, blob)
+  settings = {
+    method: "POST"
+    cache: false
+    contentType: false
+    processData: false
+    data: formDataResult
+    xhr: ->
+      xhr = new XMLHttpRequest
+      xhr.upload.onprogress = loadingProgressCallback
+      xhr
+  }
+  options.ajaxSettings(settings, fileIndex, blob)
+  settings.url = options.url unless settings.url
+  $.ajax(settings)
+
+
+prettyJoin = (sequence, delimiter, lastDelimiter)->
+  if sequence.length is 0
+    return ""
+  if sequence.length is 1
+    return sequence[0]
+
+  result = []
+  for i in [0...sequence.length-2]
+    result.push sequence[i]
+
+  last = sequence[sequence.length-2] + lastDelimiter + sequence[sequence.length-1]
+  return result.join(delimiter) + last
 
 
 
@@ -322,37 +358,6 @@ imageAction = (options, params, preview, file, blobCallback) ->
   reader.readAsDataURL(file)
 
 
-
-uploadQuery = (options, formDataResult, fileInput, fileIndex, blob, loadingProgressCallback) ->
-  options.uploadBegin.call(fileInput, fileIndex, blob)
-  settings = {
-    method: "POST"
-    cache: false
-    contentType: false
-    processData: false
-    data: formDataResult
-    xhr: ->
-      xhr = new XMLHttpRequest
-      xhr.upload.onprogress = loadingProgressCallback
-      xhr
-  }
-  options.ajaxSettings(settings, fileIndex, blob)
-  settings.url = options.url unless settings.url
-  $.ajax(settings)
-
-
-prettyJoin = (sequence, delimiter, lastDelimiter)->
-  if sequence.length is 0
-    return ""
-  if sequence.length is 1
-    return sequence[0]
-
-  result = []
-  for i in [0...sequence.length-2]
-    result.push sequence[i]
-
-  last = sequence[sequence.length-2] + lastDelimiter + sequence[sequence.length-1]
-  return result.join(delimiter) + last
 
 
 actions = $.fn.withDropZone.actions = {

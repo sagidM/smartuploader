@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Full Upload</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="../jquery.smartuploader.js"></script>
+  <link rel="stylesheet" type="text/css" href="common.css">
+</head>
+<body>
+  <h2>Amazon S3 uploading</h2>
+  <div id="drop_zone" class="drop-zone">
+    <p class="title">Drop file here</p>
+    <div class="preview-container"></div>
+  </div>
+  <input id="file_input" accept="image/*" type="file" multiple="" name="file">
+  <button id="upload_images">Auto Upload On</button>
+  <div id="result_images" class="result-images"></div>
+
+<script>
+
+var url = "https://smartuploader.s3.amazonaws.com/";
+var fileNamePrefix = "uploads/" + Date.now() + "_";
+
+var result = $("#file_input").withDropZone("#drop_zone", {
+  url: url,   // common page for every 
+  uploadBegin: function(filename, fileIndex, blob) {
+    console.log("begin: " + filename)
+  },
+  uploadEnd: function(filename, fileIndex, blob) {
+    console.log("end: " + filename)
+  },
+  done: function(filenames){
+    console.log("done: " + filenames);
+    console.log(fileNamePrefix)
+    var result = $("#result_images");
+    var html = ["<b>Your images</b>"];
+    for (var i = 0; i < filenames.length; i++) {
+      var href = url + fileNamePrefix + filenames[i];
+      html.push(`<a href="${href}">${url + fileNamePrefix}<b>${filenames[i]}</b></a>`)
+    }
+    result.html(html.join("<br/>"));
+  },
+  action: function(fileIndex){
+    // you can change your file
+    // for example:
+    var convertTo;
+    var extension;
+    if (this.files[fileIndex].type === "image/png") {
+      convertTo = {
+        mimeType: "image/jpeg",
+        maxWidth: 150,
+        maxHeight: 150,
+      };
+      extension = ".jpg";
+    }
+    else {
+      convertTo = null;
+      extension = null;
+    }
+    console.log(convertTo);
+
+    return {
+      name: "image",
+      rename: function(filenameWithoutExt, ext, fileIndex) {
+        return filenameWithoutExt + (extension || ext)
+      },
+      params: {
+        preview: true,
+        convertTo: convertTo,
+      }
+    }
+  },
+  ifWrongFile: "show",
+  wrapperForInvalidFile: function(fileIndex) {
+    return `<div style="margin: 20px 0; color: red;">File: "${file.name}" doesn't support</div>`
+  },
+
+  multiUploading: true,
+  formData: function(fileIndex, blob, filename) {
+    var formData = new FormData;
+    formData.set("key", fileNamePrefix + filename);  // key will be file name in S3
+    formData.set("file", blob, filename);
+    return formData
+  },
+  // OR for single upload
+  // multiUploading: false,
+  // formData: function(blobs, filenames) {
+  //   var formData = new FormData;
+  //   formData.set("key", fileNamePrefix + filename);
+  //   for (var i = 0; i < blobs.length; i++) {
+  //     formData.attach("file", blobs[i], filenames[i]);
+  //   }
+  //   return formData
+  // },
+  // but Amazon S3 doesn't allow it
+
+  ajaxSettings: function(settings, index, filename, blob){
+    // settings.url = "/some_specific_page"
+    // settings.data.set("key", "AKIAJ26HYP7ZBX3UNBLA")  // extra parameters
+    // TMuJ5xCSAv3R4zmIzuWBsCMWlS0ZS1kJWJ+CL1lU
+    settings.error = function(e) {
+      return alert(`${e.status}: ${e.statusText}`);
+    }
+  }
+});
+
+$("#upload_images").click(result.load);
+
+</script>
+
+</body>
+</html>

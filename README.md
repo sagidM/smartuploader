@@ -1,109 +1,41 @@
-# smartuploader
+smartuploader
+===============
+
 jQuery plugin for upload files
 
 
+## Features
+* **Multiple file upload:**  
+  Allows to select multiple files at once and upload them simultaneously.
+* **Drag & Drop support:**  
+  Allows to upload files by dragging them from your desktop or filemanager and dropping them on your browser window.
+* **Upload progress bar:**  
+  Shows a progress bar indicating the upload progress for individual files.
+* **Client-side image convert and resizing:**  
+  Images can be automatically convert into JPEG, PNG, WEBP and resized on client-side with browsers supporting the required JS APIs.
+* **Preview images (other formats are going to be):**  
+  A preview of image can be displayed before uploading with browsers supporting the required APIs.
+* **No browser plugins (e.g. Adobe Flash) required:**  
+  The implementation is based on open standards like HTML5 and JavaScript and requires no additional browser plugins.
 
-```html
-<script src="https://github.com/kofon95/smartuploader/blob/master/jquery.smartuploader.coffee"></script>
-<script>
-$("#file_input").withDropZone("#drop_zone", {
-  url: "/some_common_page",
-  uploadBegin: function(fileIndex, blob) {
-  },
-  uploadEnd: function(fileIndex, blob) {
-  },
-  done: function(){
-  },
-  multiUploading: false,
-  action: {
-    name: "image",
-    rename: function(filenameWithoutExt, ext, fileIndex) {
-      return filenameWithoutExt + ".jpg"
-    },
-    params: {
-      preview: true,
-      convertTo: {
-        mimeType: "image/jpeg",
-        maxWidth: 150,
-        maxHeight: 150,
-      },
-    }
-  },
-  ifWrongFile: "show",
-  wrapperForInvalidFile: function(fileIndex) {
-    return `<div style="margin: 20px 0; color: red;">File: "${file.name}" doesn't support</div>`
-  },
-  ajaxSettings: function(settings, index, filename, blob){
-    // settings.url = "/some_specific_page"
-    settings.data.set("user_id", "0")
-    settings.error = function(e) {
-      if (e.status === 0) {
-        return alert("Check your internet connection");
-      } else if (e.status >= 400 && e.status < 500) {
-        return alert(`Server page not found: ${e.status}`);
-      } else {
-        return alert(`Server error: ${e.status}`);
-      }
-    }
-  }
-});
-</script>
-<form enctype="multipart/form-data" action="" method="post">
-  <div id="drop_zone" class="drop-zone">
-    <p class="title">Drop file here</p>
-    <div class="preview-container"></div>
-  </div>
-  <input id="file_input" accept="image/*" type="file" multiple="" name="file">
-</form>
-<style>
-.drop-zone {
-  cursor: pointer;
-  color: #555;
-  font-size: 18px;
-  text-align: center;
-  width: 400px;
-  padding: 50px 0;
-  margin: 50px auto;
-  border: 2px dashed #0087F7;
-  border-radius: 5px;
-  background: white;
-}
-.drop-zone.hover {
-  background: #ddd;
-  border-color: #aaa;
-}
-.drop-zone.error {
-  background: #faa;
-  border-color: #f00;
-}
-.drop-zone.drop {
-  background: #afa;
-  border-color: #00a1ff;
-}
-.drop-zone.drop > .title {
-  display: none;
-}
-.preview-container canvas {
-  width: 150px;
-}
-.file-uploader-progress-bar {
-  margin: 0 20px;
-}
-.file-uploader-progress-bar > * {
-  background-color: #71a5f3;
-  width: 0;
-  height: 5px;
-  border-radius: 5px;
-}
-.file-uploader-progress-bar.loading > * {
-  background-color: #8c8c8c;
-}
-</style>
+
+## Deployment
+
+### __To compile to js__
 ```
+$ npm install --global coffeescript
 
-```css
-
+$ coffee -wc jquery.smartuploader.coffee # watch and compile
+$ coffee -c jquery.smartuploader.coffee  # just compile
 ```
+_it creates **jquery.smartuploader.js** in the root_
+
+#### More information [https://www.npmjs.com/package/coffee-script](https://www.npmjs.com/package/coffee-script)
+
+### __Online service__
+
+Use CoffeeScript official website: [http://coffeescript.org/#try:%23%20Paste%20CoffeeScript%20code%20here](http://coffeescript.org/#try:%23%20Paste%20CoffeeScript%20code%20here)
+
 
 
 
@@ -163,4 +95,6 @@ $("#file_input").withDropZone("#drop_zone", {
 }
 </style>
 
-# It converts your image into "jpeg" 150x150 (fill) and make post query to it's page
+
+## License
+Released under the [MIT license](https://opensource.org/licenses/MIT).
