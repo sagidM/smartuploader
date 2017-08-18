@@ -1,6 +1,8 @@
 smartuploader
 ===============
 
+https://cdn.rawgit.com/kofon95/smartuploader/7b5865c9/jquery.smartuploader.min.js
+
 ## Description
 
 jQuery plugin for upload files.
