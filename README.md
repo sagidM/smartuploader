@@ -13,7 +13,7 @@ Moreover, it also can convert image and resize it on the client side.
 [https://kofon95.github.io/smartuploader/examples/3.converter.html](https://kofon95.github.io/smartuploader/examples/3.converter.html)
 
 ## Examples
-[https://github.io/kofon95/smartuploader/examples](https://github.io/kofon95/smartuploader/examples)
+[https://github.com/kofon95/smartuploader/tree/master/examples](https://github.com/kofon95/smartuploader/tree/master/examples)
 
 
 
