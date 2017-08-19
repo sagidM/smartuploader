@@ -105,7 +105,7 @@ var result = $("#file_input").withDropZone("#drop_zone", {
                         // error (do nothing and add class "error" on drop zone)
 
   wrapperForInvalidFile: function(fileIndex) {
-    return `<div style="margin: 20px 0; color: red;">File: "${file.name}" doesn't support</div>`
+    return `<div style="margin: 20px 0; color: red;">File: "${this.files[fileIndex].name}" doesn't support</div>`
   },
 
   // all queries will be executed in one query if this option is false

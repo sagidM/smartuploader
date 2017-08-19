@@ -70,7 +70,7 @@ var result = $("#file_input").withDropZone("#drop_zone", {
   },
   ifWrongFile: "show",
   wrapperForInvalidFile: function(fileIndex) {
-    return `<div style="margin: 20px 0; color: red;">File: "${file.name}" doesn't support</div>`
+    return `<div style="margin: 20px 0; color: red;">File: "${this.files[fileIndex].name}" doesn't support</div>`
   },
 
   multiUploading: true,
