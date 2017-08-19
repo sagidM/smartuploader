@@ -1,7 +1,7 @@
 smartuploader
 ===============
 
-https://cdn.rawgit.com/kofon95/smartuploader/7b5865c9/jquery.smartuploader.min.js
+Stable https://cdn.rawgit.com/kofon95/smartuploader/32761a8/jquery.smartuploader.min.js
 
 ## Description
 
