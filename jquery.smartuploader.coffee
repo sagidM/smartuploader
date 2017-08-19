@@ -1,5 +1,5 @@
 ###
- jQuery Smart Uploader Plugin 0.2.0
+ jQuery Smart Uploader Plugin 0.3.0
  https://github.com/kofon95/smartuploader
 
  Licensed under the MIT license:
@@ -25,7 +25,6 @@ DefaultOptions = {
   # formData: (blobs, filenames) ->            # if multi upload, it's called for each file
   # ~70 line
   uploadBegin: (fileIndex, blob) ->
-  process: (progress, fileIndex, blob) ->
   uploadEnd: (fileIndex, blob) ->
   done: () ->
   ajaxSettings: (settings, fileIndex, blob)->
