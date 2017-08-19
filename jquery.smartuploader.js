@@ -9,7 +9,7 @@
  */
 
 (function() {
-  var $, DefaultOptions, DropZoneError, actions, empty, extract, ifWrongFileParams, imageAction, prettyJoin, uploadImageFile, uploadQuery;
+  var $, DefaultOptions, DropZoneError, actions, empty, extract, ifWrongFileParams, imageAction, prettyJoin, uploadImageFiles, uploadQuery;
 
   $ = jQuery;
 
@@ -56,7 +56,7 @@
   empty = function() {};
 
   $.fn.withDropZone = function(dropZone, options) {
-    var fileInput, key, promiseResult, uploadResult, value;
+    var fileInput, key, value, workers;
     if (this.attr("type") !== "file") {
       throw new DropZoneError("You should call this method only on input[type=file] and send dropZone as argument");
     }
@@ -97,12 +97,7 @@
     } else {
       options = {};
     }
-    uploadResult = {
-      load: null
-    };
-    promiseResult = new Promise(function(resolve) {
-      return uploadResult.load = resolve;
-    });
+    workers = [];
     fileInput = this.get(0);
     dropZone.on("dragenter", function() {
       return dropZone.addClass('hover');
@@ -113,18 +108,32 @@
     }).on("drop", function(e) {
       e.preventDefault();
       fileInput.files = e.originalEvent.dataTransfer.files;
-      return uploadImageFile(this, fileInput, promiseResult, fileInput.files, options);
+      return uploadImageFiles(this, fileInput, workers, fileInput.files, options);
     }).on("click", function() {
       return fileInput.click();
     });
     this.on("change", function() {
-      return uploadImageFile(dropZone[0], this, promiseResult, this.files, options);
+      return uploadImageFiles(dropZone[0], this, workers, this.files, options);
     });
-    return uploadResult;
+    return {
+      upload: function() {
+        var j, len, results, worker;
+        results = [];
+        for (j = 0, len = workers.length; j < len; j++) {
+          worker = workers[j];
+          results.push(worker());
+        }
+        return results;
+      },
+      waitingToUploadCount: function() {
+        return workers.length;
+      }
+    };
   };
 
-  uploadImageFile = function(dropZone, fileInput, promiseResult, files, options) {
+  uploadImageFiles = function(dropZone, fileInput, workers, files, options) {
     var accept, action, actionOption, anyIsInvalid, blobs, dotPos, droppedFiles, ext, file, filenames, i, ignore, isValid, isValidFile, j, k, kids, len, mimeTypeMatcher, msize, multiUploading, name, nameMatcher, preview, previewContainer, progressBar, ref, uploadNext, uploadedFilesCount;
+    workers.length = 0;
     dropZone.classList.remove('hover');
     dropZone.classList.remove('drop');
     dropZone.classList.remove('error');
@@ -213,7 +222,7 @@
       kids[1].textContent = file.name;
       progressBar = kids[2].children[0];
       uploadNext = function(blob) {
-        return promiseResult.then(function() {
+        return workers.push(function() {
           var formDataResult, process;
           process = function(progress) {
             progressBar.style.width = 100 * progress.loaded / progress.total + "%";

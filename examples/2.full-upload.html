@@ -31,7 +31,6 @@ var result = $("#file_input").withDropZone("#drop_zone", {
   },
   done: function(filenames){
     console.log("done: " + filenames);
-    console.log(fileNamePrefix)
     var result = $("#result_images");
     var html = [`<b>Your image${filenames.length === 1 ? '' : 's:'}</b>`];
     for (var i = 0; i < filenames.length; i++) {
@@ -57,7 +56,6 @@ var result = $("#file_input").withDropZone("#drop_zone", {
       convertTo = null;
       extension = null;
     }
-    console.log(convertTo);
 
     return {
       name: "image",
@@ -103,7 +101,7 @@ var result = $("#file_input").withDropZone("#drop_zone", {
   }
 });
 
-$("#upload_images").click(result.load);
+$("#upload_images").click(result.upload);
 
 </script>
 

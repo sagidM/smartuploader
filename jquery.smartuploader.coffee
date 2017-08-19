@@ -76,10 +76,9 @@ $.fn.withDropZone = (dropZone, options) ->
     options = {}
 
 
-  uploadResult = {load: null}
-  promiseResult = new Promise((resolve) -> uploadResult.load = resolve)
 
 #####################################
+  workers = []
 
   fileInput = this.get(0)
 
@@ -96,19 +95,25 @@ $.fn.withDropZone = (dropZone, options) ->
     .on("drop", (e) ->
       e.preventDefault()
       fileInput.files = e.originalEvent.dataTransfer.files
-      uploadImageFile(this, fileInput, promiseResult, fileInput.files, options)
+      uploadImageFiles(this, fileInput, workers, fileInput.files, options)
     )
     .on("click", -> fileInput.click())
 
   this.on("change", ->
-    uploadImageFile(dropZone[0], this, promiseResult, this.files, options)
+    uploadImageFiles(dropZone[0], this, workers, this.files, options)
   )
 
-  return uploadResult
+  return {
+    upload: ->
+      for worker in workers
+        worker()
+    waitingToUploadCount: -> workers.length
+  }
 
 
 # both dropZone and fileInput are instances of HTMLElement
-uploadImageFile = (dropZone, fileInput, promiseResult, files, options) ->
+uploadImageFiles = (dropZone, fileInput, workers, files, options) ->
+  workers.length = 0;
   dropZone.classList.remove 'hover'
   dropZone.classList.remove 'drop'
   dropZone.classList.remove 'error'
@@ -211,7 +216,7 @@ uploadImageFile = (dropZone, fileInput, promiseResult, files, options) ->
 
     # ajax request
     uploadNext = (blob)->
-      promiseResult.then ->
+      workers.push ->
         process = (progress) ->
           progressBar.style.width = 100 * progress.loaded / progress.total + "%"
           options.process.call(fileInput, progress, fileIndex, blob)

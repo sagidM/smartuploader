@@ -7,11 +7,6 @@
   <link rel="stylesheet" type="text/css" href="common.css">
 </head>
 <body>
-  <h2>Amazon S3 uploading</h2>
-  <div id="drop_zone" class="drop-zone">
-    <p class="title">Drop file here</p>
-    <div class="preview-container"></div>
-  </div>
   <div class="converting">
     <div class="max">
       <div><b>Max</b> width and height</div>
@@ -35,8 +30,13 @@
       </select>
     </div>
   </div>
+  <h3>Note: you should settings up and only after then drop images</h3>
+  <div id="drop_zone" class="drop-zone">
+    <p class="title">Drop file here</p>
+    <div class="preview-container"></div>
+  </div>
   <input id="file_input" accept="image/*" type="file" multiple="" name="file">
-  <button id="upload_images">Auto Upload On</button>
+  <button id="upload_images">Upload</button>
   <div id="result_images" class="result-images"></div>
 
 <script>
@@ -76,7 +76,6 @@ var result = $("#file_input").withDropZone("#drop_zone", {
     // you can change your file
     // for example:
     var type = $("#image_mime_type").val();
-    console.log(quality.val())
     var convertTo = {
       mimeType:   type,
       maxWidth:   maxWidth.val(),
@@ -86,6 +85,8 @@ var result = $("#file_input").withDropZone("#drop_zone", {
       qualityArgument: quality.val()
     };
     var extension = "." + type.substr(type.indexOf("/")+1);
+    var count = this.files.length;
+    console.log(`${count} file${count === 1 ? ' is' : 's are'} waiting`);
 
     return {
       name: "image",   // with "image" is supposed to be more actions
@@ -145,7 +146,7 @@ var result = $("#file_input").withDropZone("#drop_zone", {
   // methods: uploadBegin and uploadEnd also have similar signature
 });
 
-$("#upload_images").click(result.load);
+$("#upload_images").click(result.upload);
 
 </script>
 
