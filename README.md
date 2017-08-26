@@ -5,7 +5,7 @@ Stable https://cdn.rawgit.com/kofon95/smartuploader/d49167c/jquery.smartuploader
 
 ## Description
 
-jQuery plugin for upload files. Moreover, it also can convert image and resize it on the client side.  
+jQuery plugin to upload files. Moreover, it also can convert image and resize it on the client side.  
 See [wiki](https://github.com/kofon95/smartuploader/wiki) for details.
 
 
