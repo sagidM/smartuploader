@@ -1,5 +1,5 @@
 ###
- jQuery Smart Uploader Plugin 0.3.0
+ jQuery Smart Uploader Plugin 0.4.0
  https://github.com/kofon95/smartuploader
 
  Licensed under the MIT license:
@@ -15,6 +15,7 @@ DefaultOptions = {
   multiUploading: true
   ifWrongFile: "show"
   maxFileSize: Number.POSITIVE_INFINITY
+  autoUpload: no
   fileNameMatcher: /.*/      # /^[^\.].*\..*[^\.]$/  # .wrong; also.wrong.; good.txt
   fileMimeTypeMatcher: /.*/
   wrapperForInvalidFile: (fileIndex) ->
@@ -106,6 +107,9 @@ $.fn.withDropZone = (dropZone, options) ->
     upload: ->
       for worker in workers
         worker()
+    autoUpload: (value)->
+      return options.autoUpload unless value?
+      options.autoUpload = value
     waitingToUploadCount: -> workers.length
   }
 
@@ -218,7 +222,6 @@ uploadImageFiles = (dropZone, fileInput, workers, files, options) ->
       workers.push ->
         process = (progress) ->
           progressBar.style.width = 100 * progress.loaded / progress.total + "%"
-          options.process.call(fileInput, progress, fileIndex, blob)
 
         if multiUploading
           formDataResult = options.formData.call(fileInput, fileIndex, blob, filenames[fileIndex])
@@ -234,6 +237,7 @@ uploadImageFiles = (dropZone, fileInput, workers, files, options) ->
             uploadQuery(options, formDataResult, filenames, fileInput, "(multiUploading must be true)", blobs, process).done ->
               options.uploadEnd.call(fileInput, filenames, fileIndex, blob)
               options.done.call(fileInput, filenames)
+      workers[workers.length-1]() if options.autoUpload
 
 
 
