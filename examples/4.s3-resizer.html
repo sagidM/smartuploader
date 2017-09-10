@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Resize image</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="../jquery.smartuploader.js"></script>
+  <link rel="stylesheet" type="text/css" href="common.css">
+</head>
+<body>
+  <h2>Demo: AWS Lambda <a target="_blank" style="color: black" href="https://github.com/kofon95/s3-resizer">s3-resizer</a></h2>
+  <div id="drop_zone" class="drop-zone">
+    <p class="title">Drop file here</p>
+    <div class="preview-container"></div>
+  </div>
+  <input id="file_input" accept="image/*" type="file" multiple="" name="file">
+  <div id="results" style="display: none;">
+    <div>
+      Original image:<br>
+      <a target="_blank" id="original_image" href=""></a>
+    </div>
+    <div style="margin-top: 50px;">
+      <p>Change prefix in input field below (<a target="_blank" href="https://github.com/kofon95/s3-resizer#what-this-lambda-provides">see available size-prefixes</a>)</p>
+      <p>
+        <span id="image_dir"></span>
+        <input type="text" id="size_prefix" value="150x150_max">
+        <span id="image_name"></span>
+      </p>
+      <button id="set_src_to_img" style="padding: 10px; margin-bottom: 10px;">Set <b>src</b> to img tag</button>
+      <div id="loading_inform" style="display: none;">Loading...</div>
+      <div style="margin-top: 10px"><img id="uploaded_image" alt="change prefix!"></div>
+    </div>
+  </div>
+
+
+<script>
+var endpoint = "http://smartuploader.s3-website-us-east-1.amazonaws.com/";
+var url = "https://smartuploader.s3.amazonaws.com/";
+var fileNamePrefix = `uploads/sizes/${Date.now()}/`;
+
+$("#file_input").withDropZone("#drop_zone", {
+  url: url,
+  autoUpload: true,
+  formData: (fileIndex, blob, filename) => {
+    var formData = new FormData;
+    // just skip these parameters
+    // to know how to upload image in amazon s3, see issue#1
+    // https://github.com/kofon95/smartuploader/issues/1
+    formData.set("key", fileNamePrefix + filename);
+    formData.set("Content-Type", "image/jpeg");
+    formData.set("acl", "public-read");
+    formData.set("file", blob, filename);
+    return formData
+  },
+  done: onImageUploaded,
+  action: {
+    name: "image",
+    params: {
+      preview: true,
+    }
+  },
+});
+
+
+function onImageUploaded(filenames){
+  $("#results").show();
+  var aTag = document.getElementById("original_image");
+  var result = $("#result_images");
+  var href = endpoint + fileNamePrefix + filenames[0];
+  aTag.href = href;
+  aTag.innerHTML = `${endpoint}${fileNamePrefix}<b>${filenames[0]}</b>`
+
+  $("#image_dir").text(endpoint + fileNamePrefix);
+  $("#image_name").text("/" + filenames[0]);
+}
+
+var uploadedImage = document.getElementById("uploaded_image");
+$("#set_src_to_img").click(() => {
+  uploadedImage.src = $("#image_dir").text() + $("#size_prefix").val() + $("#image_name").text();
+  $("#loading_inform").show();
+});
+uploadedImage.onload = () => $("#loading_inform").hide();
+</script>
+</body>
+</html>

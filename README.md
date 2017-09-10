@@ -14,6 +14,8 @@ See [wiki](https://github.com/kofon95/smartuploader/wiki) for details.
 
 [https://kofon95.github.io/smartuploader/examples/3.converter.html](https://kofon95.github.io/smartuploader/examples/3.converter.html)
 
+[https://kofon95.github.io/smartuploader/examples/4.s3-resizer.html](https://kofon95.github.io/smartuploader/examples/4.s3-resizer.html)
+
 ## Examples
 [https://github.com/kofon95/smartuploader/tree/master/examples](https://github.com/kofon95/smartuploader/tree/master/examples)
 
