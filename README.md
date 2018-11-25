@@ -6,18 +6,18 @@ Stable https://cdn.rawgit.com/kofon95/smartuploader/608b195f/jquery.smartuploade
 ## Description
 
 jQuery plugin to upload files. Moreover, it also can convert image and resize it on the client side.  
-See [wiki](https://github.com/kofon95/smartuploader/wiki) for details.
+See [wiki](https://github.com/sagidM/smartuploader/wiki) for details.
 
 
 ## Demo
-[https://kofon95.github.io/smartuploader/examples/2.full-upload.html](https://kofon95.github.io/smartuploader/examples/2.full-upload.html)
+[https://sagidm.github.io/smartuploader/examples/2.full-upload.html](https://sagidm.github.io/smartuploader/examples/2.full-upload.html)
 
-[https://kofon95.github.io/smartuploader/examples/3.converter.html](https://kofon95.github.io/smartuploader/examples/3.converter.html)
+[https://sagidm.github.io/smartuploader/examples/3.converter.html](https://sagidm.github.io/smartuploader/examples/3.converter.html)
 
-[https://kofon95.github.io/smartuploader/examples/4.s3-resizer.html](https://kofon95.github.io/smartuploader/examples/4.s3-resizer.html)
+[https://sagidm.github.io/smartuploader/examples/4.s3-resizer.html](https://sagidm.github.io/smartuploader/examples/4.s3-resizer.html)
 
 ## Examples
-[https://github.com/kofon95/smartuploader/tree/master/examples](https://github.com/kofon95/smartuploader/tree/master/examples)
+[https://github.com/sagidM/smartuploader/tree/master/examples](https://github.com/sagidM/smartuploader/tree/master/examples)
 
 
 
